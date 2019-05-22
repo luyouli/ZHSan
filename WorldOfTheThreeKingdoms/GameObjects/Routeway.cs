@@ -59,6 +59,9 @@ namespace GameObjects
         [DataMember]
         public int BelongedFactionString { get; set; }
 
+        [DataMember]
+        public Boolean Developing { get; private set; }
+
         public Architecture StartArchitecture;
 
         private void AddRoutePointArea(RoutePoint routePoint)
@@ -200,6 +203,12 @@ namespace GameObjects
                 this.Building = true;
             }
 
+            if (this.StartArchitecture.BelongedSection == null)
+            {
+                this.Close();
+                return;
+            }
+
             if (this.EndArchitecture != null && 
                 this.StartArchitecture.BelongedSection.AIDetail.AutoRun && this.BelongedFaction == this.EndArchitecture.BelongedFaction)
             {
@@ -245,6 +254,7 @@ namespace GameObjects
 
         private void ExpandActiveRouteway(LinkedListNode<RoutePoint> node)
         {
+            this.Developing = false;
             Troop troopByPositionNoCheck;
             int routewayWorkForce = this.BelongedFaction.RoutewayWorkForce;
             if (node == null)
@@ -257,6 +267,7 @@ namespace GameObjects
                     return;
                 }
                 this.StartArchitecture.DecreaseFund(node.Value.BuildFundCost);
+                this.Developing = true;
                 this.LastActivePointIndex++;
                 this.AddRoutePointArea(node.Value);
                 routewayWorkForce -= node.Value.BuildWorkCost;
@@ -277,6 +288,7 @@ namespace GameObjects
                     break;
                 }
                 this.StartArchitecture.DecreaseFund(decrement);
+                this.Developing = true;
                 this.LastActivePointIndex++;
                 this.AddRoutePointArea(node.Next.Value);
                 routewayWorkForce -= node.Next.Value.BuildWorkCost;

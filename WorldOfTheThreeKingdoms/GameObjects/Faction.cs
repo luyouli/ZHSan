@@ -264,9 +264,7 @@ namespace GameObjects
         public string SectionsString { get; set; }
 
         public SectionList Sections = new SectionList();
-        [DataMember]
-        public Dictionary<Point, object> SpyMessageCloseList = new Dictionary<Point, object>();
-       
+
         public bool StopToControl;
 
         public MilitaryKindTable TechniqueMilitaryKinds = new MilitaryKindTable();
@@ -691,7 +689,7 @@ namespace GameObjects
                     this.AddKnownAreaData(point, InformationLevel.高);
                 }
             }
-            if (a.Kind.HasLongView)
+            if (a.Kind != null && a.Kind.HasLongView)
             {
                 foreach (Point point in a.LongViewArea.Area)
                 {

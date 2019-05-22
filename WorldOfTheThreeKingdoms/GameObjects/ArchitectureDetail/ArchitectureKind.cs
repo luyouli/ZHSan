@@ -57,23 +57,11 @@ namespace GameObjects.ArchitectureDetail
                 {
                     this.texture = CacheManager.GetTempTexture("Content/Textures/Resources/Architecture/" + this.ID.ToString() + ".png");
                 }
+
                 return this.texture;
             }
         }
-        public PlatformTexture Texture2
-        {
-            get
-            {
-                return CacheManager.GetTempTexture("Content/Textures/Resources/Architecture/" + this.ID.ToString() + "-5.png");
-            }
-        }
-        public PlatformTexture Texture3
-        {
-            get
-            {
-                return CacheManager.GetTempTexture("Content/Textures/Resources/Architecture/" + this.ID.ToString() + "-13.png");
-            }
-        }
+
         //public void ClearTexture()
         //{
         //    if (this.texture != null)
@@ -238,7 +226,7 @@ namespace GameObjects.ArchitectureDetail
                 this.hasAgriculture = value;
             }
         }
-        
+
         public string HasAgricultureString
         {
             get
@@ -579,4 +567,3 @@ namespace GameObjects.ArchitectureDetail
         }
     }
 }
-

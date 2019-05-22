@@ -2,6 +2,7 @@
 using GameObjects.Conditions;
 using GameObjects.Influences;
 using GameObjects.PersonDetail;
+using GameObjects.TroopDetail;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -63,10 +64,14 @@ namespace WorldOfTheThreeKingdomsEditor
             typeof(double),
             typeof(char),
             typeof(string),
+            typeof(Microsoft.Xna.Framework.Point),
+            typeof(Microsoft.Xna.Framework.Point?),
             typeof(ConditionKind),
             typeof(InfluenceKind),
             typeof(TitleKind),
             typeof(List<int>),
+            //typeof(List<KeyValuePair<int, int>>),
+            typeof(int[]),
             typeof(GameObjects.ArchitectureDetail.EventEffect.EventEffectKind),
             typeof(GameObjects.TroopDetail.EventEffect.EventEffectKind)
         };
@@ -79,7 +84,7 @@ namespace WorldOfTheThreeKingdomsEditor
         {
             return sampleInstance.GetType().GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
                 .Where(x => Attribute.IsDefined(x, typeof(DataMemberAttribute)))
-                .Where(x => supportedTypes.Contains(x.FieldType) || x.FieldType.IsEnum)
+                //.Where(x => supportedTypes.Contains(x.FieldType) || x.FieldType.IsEnum)
                 .ToArray();
         }
 
@@ -87,14 +92,14 @@ namespace WorldOfTheThreeKingdomsEditor
         {
             return sampleInstance.GetType().GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
                 .Where(x => Attribute.IsDefined(x, typeof(DataMemberAttribute)))
-                .Where(x => supportedTypes.Contains(x.PropertyType) || x.PropertyType.IsEnum)
+                //.Where(x => supportedTypes.Contains(x.PropertyType) || x.PropertyType.IsEnum)
                 .ToArray();
         }
 
         private GameScenario scen;
         private DataGrid dg;
         private TextBlock helpTextBlock;
-
+        private DataTable dt;
         protected void init(GameScenario scen, DataGrid dg, TextBlock helpTextBlock)
         {
             this.scen = scen;
@@ -234,8 +239,8 @@ namespace WorldOfTheThreeKingdomsEditor
         public void setup()
         {
             settingUp = true;
-
-            DataTable dt = new DataTable(sampleInstance.GetType().Name);
+            this.dg.ItemsSource = null;
+            dt = new DataTable(sampleInstance.GetType().Name);
 
             FieldInfo[] fields = getFieldInfos();
             PropertyInfo[] properties = getPropertyInfos();
@@ -284,12 +289,23 @@ namespace WorldOfTheThreeKingdomsEditor
                     col.ColumnName = helpText;
                     dt.Columns.Add(col);
                 }
+                else if (type == typeof(Microsoft.Xna.Framework.Point) || type == typeof(Microsoft.Xna.Framework.Point?))
+                {
+                    DataColumn col = new DataColumn(name, "".GetType());
+                    col.DefaultValue = "";
+                    col.ColumnName = helpText;
+                    dt.Columns.Add(col);
+                }
                 else if (type == typeof(InfluenceKind))
                 {
                     DataColumn col = new DataColumn(name, 1.GetType());
                     col.DefaultValue = 0;
                     col.ColumnName = helpText;
                     dt.Columns.Add(col);
+                    //if (helpText)
+                    //{
+
+                    //}
                 }
                 else if (type == typeof(ConditionKind))
                 {
@@ -318,11 +334,74 @@ namespace WorldOfTheThreeKingdomsEditor
                     col.DefaultValue = 0;
                     col.ColumnName = helpText;
                     dt.Columns.Add(col);
-                } 
+                }
+                else if (type == typeof(AttackDefaultKind))
+                {
+                    DataColumn col = new DataColumn(name, 1.GetType());
+                    col.DefaultValue = 0;
+                    col.ColumnName = helpText;
+                    dt.Columns.Add(col);
+                }
+                else if (type == typeof(AttackTargetKind))
+                {
+                    DataColumn col = new DataColumn(name, 1.GetType());
+                    col.DefaultValue = 0;
+                    col.ColumnName = helpText;
+                    dt.Columns.Add(col);
+                }
+                else if (type == typeof(CastDefaultKind))
+                {
+                    DataColumn col = new DataColumn(name, 1.GetType());
+                    col.DefaultValue = 0;
+                    col.ColumnName = helpText;
+                    dt.Columns.Add(col);
+                }
+                else if (type == typeof(CastTargetKind))
+                {
+                    DataColumn col = new DataColumn(name, 1.GetType());
+                    col.DefaultValue = 0;
+                    col.ColumnName = helpText;
+                    dt.Columns.Add(col);
+                }
+                else if (type == typeof(zainanlei))
+                {
+                    DataColumn col = new DataColumn(name, "".GetType());
+                    col.DefaultValue = "0 0 ";
+                    col.ColumnName = helpText;
+                    dt.Columns.Add(col);
+                }
+                else if (type == typeof(List<KeyValuePair<int, int>>))
+                {
+                    DataColumn col = new DataColumn(name, "".GetType());
+                    col.DefaultValue = "";
+                    col.ColumnName = helpText;
+                    dt.Columns.Add(col);
+                }
                 else if (type == typeof(List<int>))
                 {
                     DataColumn col = new DataColumn(name, "".GetType());
                     col.DefaultValue = "";
+                    col.ColumnName = helpText;
+                    dt.Columns.Add(col);
+                }
+                else if (type == typeof(List<Microsoft.Xna.Framework.Point>))
+                {
+                    DataColumn col = new DataColumn(name, "".GetType());
+                    col.DefaultValue = "";
+                    col.ColumnName = helpText;
+                    dt.Columns.Add(col);
+                }
+                else if (type == typeof(int[]))
+                {
+                    DataColumn col = new DataColumn(name, "".GetType());
+                    col.DefaultValue = defaultValue;
+                    col.ColumnName = helpText;
+                    dt.Columns.Add(col);
+                }
+                else if (type == typeof(Dictionary<int, int>))
+                {
+                    DataColumn col = new DataColumn(name, "".GetType());
+                    col.DefaultValue = defaultValue;
                     col.ColumnName = helpText;
                     dt.Columns.Add(col);
                 }
@@ -334,7 +413,68 @@ namespace WorldOfTheThreeKingdomsEditor
                     dt.Columns.Add(col);
                 }
             }
+            if (new T() is Influence)
+            {
+                dt.Columns.Add("对应种类名称");
+                dt.Columns.Add("对应种类类型");
+                dt.Columns["对应种类名称"].SetOrdinal(dt.Columns["对应种类"].Ordinal + 1);
+                dt.Columns["对应种类类型"].SetOrdinal(dt.Columns["对应种类"].Ordinal + 2);
+                dt.Columns["对应种类名称"].ReadOnly = true;
+                dt.Columns["对应种类类型"].ReadOnly = true;
+            }
+            else if (new T() is InfluenceKind)
+            {
+                dt.Columns.Add("种类名称");
+                dt.Columns["种类名称"].SetOrdinal(dt.Columns["种类"].Ordinal + 1);
+                dt.Columns["ID"].ReadOnly = true;
+                dt.Columns["种类"].ReadOnly = true;
+                dt.Columns["种类名称"].ReadOnly = true;
+            }
+            else if (new T() is GameObjects.PersonDetail.Biography)
+            {
+                dt.Columns["姓名"].ReadOnly = true;
+            }
+            initdt();
 
+            //if (dt.Columns.Contains("ID") && !dg.Name.Equals("dgDiplomaticRelation"))
+            //{
+                DataColumn[] PrimaryKeyColumns = new DataColumn[1];
+                PrimaryKeyColumns[0] = dt.Columns["ID"];
+                dt.PrimaryKey = PrimaryKeyColumns;
+            //}
+            //if (dg.Name.Equals("dgDiplomaticRelation"))
+            //{
+            //    dt.Columns.Remove("ID");
+            //    dt.Columns.Remove("Name");
+            //}
+                DependencyPropertyDescriptor dpd = DependencyPropertyDescriptor.FromProperty(ItemsControl.ItemsSourceProperty, typeof(DataGrid));
+
+            dg.ItemsSource = dt.AsDataView();
+            dt.TableNewRow += Dt_TableNewRow;
+            dt.RowChanged += Dt_RowChanged;
+            dt.RowDeleting += Dt_RowDeleting;
+            //dt.RowDeleted += Dt_RowDeleted;
+            dg.BeginningEdit += Dg_BeginningEdit;
+            dg.CurrentCellChanged += Dg_CurrentCellChanged;
+            //dg.Loaded += Dg_Loaded;
+            dpd.AddValueChanged(dg, dg_ItemsSourceChanged);
+        }
+
+        //private void Dg_Loaded(object sender, RoutedEventArgs e)
+        //{
+        //    if (dg.Name.Equals("dgDiplomaticRelation"))
+        //    {
+        //        dg.Columns[dt.Columns["ID"].Ordinal].Visibility = Visibility.Hidden;
+        //        dg.Columns[dt.Columns["Name"].Ordinal].Visibility = Visibility.Hidden;
+        //    }
+        //}
+
+        private void initdt()
+        {
+            settingUp = true;
+            dt.Clear();
+            FieldInfo[] fields = getFieldInfos();
+            PropertyInfo[] properties = getPropertyInfos();
             foreach (T p in GetDataList(scen).GetList())
             {
                 DataRow row = dt.NewRow();
@@ -345,7 +485,27 @@ namespace WorldOfTheThreeKingdomsEditor
 
                     if (i.FieldType.IsEnum)
                     {
-                        row[helpText] = (int) i.GetValue(p);
+                        row[helpText] = (int)i.GetValue(p);
+                    }
+                    else if (i.FieldType == typeof(Microsoft.Xna.Framework.Point) || i.FieldType == typeof(Microsoft.Xna.Framework.Point?))
+                    {
+                        row[helpText] = GameGlobal.StaticMethods.SaveToString((Microsoft.Xna.Framework.Point?)i.GetValue(p));
+                    }
+                    else if (i.FieldType == typeof(CastDefaultKind))
+                    {
+                        row[helpText] = ((CastDefaultKind)i.GetValue(p)).ID;
+                    }
+                    else if (i.FieldType == typeof(CastTargetKind))
+                    {
+                        row[helpText] = ((CastTargetKind)i.GetValue(p)).ID;
+                    }
+                    else if (i.FieldType == typeof(AttackDefaultKind))
+                    {
+                        row[helpText] = ((AttackDefaultKind)i.GetValue(p)).ID;
+                    }
+                    else if (i.FieldType == typeof(AttackTargetKind))
+                    {
+                        row[helpText] = ((AttackTargetKind)i.GetValue(p)).ID;
                     }
                     else if (i.FieldType == typeof(InfluenceKind))
                     {
@@ -359,6 +519,18 @@ namespace WorldOfTheThreeKingdomsEditor
                     {
                         row[helpText] = ((TitleKind)i.GetValue(p)).ID;
                     }
+                    else if (i.FieldType == typeof(zainanlei))
+                    {
+                        row[helpText] = ((zainanlei)i.GetValue(p)).SavezainantoString();
+                    }
+                    else if (i.FieldType == typeof(Dictionary<int, int>))
+                    {
+                        row[helpText] = GameGlobal.StaticMethods.SaveToString((Dictionary<int, int>)i.GetValue(p));
+                    }
+                    else if (i.FieldType == typeof(List<KeyValuePair<int, int>>))
+                    {
+                        row[helpText] = GameGlobal.StaticMethods.SaveToString((List<KeyValuePair<int, int>>)i.GetValue(p));
+                    }
                     else if (i.FieldType == typeof(GameObjects.ArchitectureDetail.EventEffect.EventEffectKind))
                     {
                         row[helpText] = ((GameObjects.ArchitectureDetail.EventEffect.EventEffectKind)i.GetValue(p)).ID;
@@ -370,6 +542,14 @@ namespace WorldOfTheThreeKingdomsEditor
                     else if (i.FieldType == typeof(List<int>))
                     {
                         row[helpText] = ((List<int>)i.GetValue(p)).Aggregate<int, string>("", (s, x) => s += x.ToString() + " ");
+                    }
+                    else if (i.FieldType == typeof(List<Microsoft.Xna.Framework.Point>))
+                    {
+                        row[helpText] = GameGlobal.StaticMethods.SaveToString((List<Microsoft.Xna.Framework.Point>)i.GetValue(p));
+                    }
+                    else if (i.FieldType == typeof(int[]))
+                    {
+                        row[helpText] = GameGlobal.StaticMethods.SaveToString((int[])i.GetValue(p));
                     }
                     else
                     {
@@ -384,6 +564,26 @@ namespace WorldOfTheThreeKingdomsEditor
                     {
                         row[helpText] = (int)i.GetValue(p);
                     }
+                    else if (i.PropertyType == typeof(Microsoft.Xna.Framework.Point) || i.PropertyType == typeof(Microsoft.Xna.Framework.Point?))
+                    {
+                        row[helpText] = GameGlobal.StaticMethods.SaveToString((Microsoft.Xna.Framework.Point?)i.GetValue(p));
+                    }
+                    else if (i.PropertyType == typeof(CastDefaultKind))
+                    {
+                        row[helpText] = ((CastDefaultKind)i.GetValue(p)).ID;
+                    }
+                    else if (i.PropertyType == typeof(CastTargetKind))
+                    {
+                        row[helpText] = ((CastTargetKind)i.GetValue(p)).ID;
+                    }
+                    else if (i.PropertyType == typeof(AttackDefaultKind))
+                    {
+                        row[helpText] = ((AttackDefaultKind)i.GetValue(p)).ID;
+                    }
+                    else if (i.PropertyType == typeof(AttackTargetKind))
+                    {
+                        row[helpText] = ((AttackTargetKind)i.GetValue(p)).ID;
+                    }
                     else if (i.PropertyType == typeof(InfluenceKind))
                     {
                         row[helpText] = ((InfluenceKind)i.GetValue(p)).ID;
@@ -395,6 +595,18 @@ namespace WorldOfTheThreeKingdomsEditor
                     else if (i.PropertyType == typeof(TitleKind))
                     {
                         row[helpText] = ((TitleKind)i.GetValue(p)).ID;
+                    }
+                    else if (i.PropertyType == typeof(zainanlei))
+                    {
+                        row[helpText] = ((zainanlei)i.GetValue(p)).SavezainantoString();
+                    }
+                    else if (i.PropertyType == typeof(Dictionary<int, int>))
+                    {
+                        row[helpText] = GameGlobal.StaticMethods.SaveToString((Dictionary<int, int>)i.GetValue(p));
+                    }
+                    else if (i.PropertyType == typeof(List<KeyValuePair<int, int>>))
+                    {
+                        row[helpText] = GameGlobal.StaticMethods.SaveToString((List<KeyValuePair<int, int>>)i.GetValue(p));
                     }
                     else if (i.PropertyType == typeof(GameObjects.ArchitectureDetail.EventEffect.EventEffectKind))
                     {
@@ -408,29 +620,50 @@ namespace WorldOfTheThreeKingdomsEditor
                     {
                         row[helpText] = ((List<int>)i.GetValue(p)).Aggregate<int, string>("", (s, x) => s += x.ToString() + " ");
                     }
+                    else if (i.PropertyType == typeof(List<Microsoft.Xna.Framework.Point>))
+                    {
+                        row[helpText] = GameGlobal.StaticMethods.SaveToString((List<Microsoft.Xna.Framework.Point>)i.GetValue(p));
+                    }
+                    else if (i.PropertyType == typeof(int[]))
+                    {
+                        row[helpText] = GameGlobal.StaticMethods.SaveToString((int[])i.GetValue(p));
+                    }
                     else
                     {
                         row[helpText] = i.GetValue(p) ?? DBNull.Value;
                     }
 
                 }
-
+                if (p is Influence)
+                {
+                    row["对应种类名称"] = (p as Influence).Kind != null ? (p as Influence).Kind.Name : "";
+                    row["对应种类类型"] = (InfluenceType)(p as Influence).Kind.Type;
+                }
+                else if (p is InfluenceKind)
+                {
+                    row["种类名称"] = (InfluenceType)(p as InfluenceKind).Type;
+                }
+                else if (p is Biography)
+                {
+                    row["姓名"] = "";
+                    if (scen.Persons.Count>0 && scen.Persons.GetGameObject((int)row["ID"]) as Person !=null)
+                    {
+                        row["姓名"] = (scen.Persons.GetGameObject((int)row["ID"]) as Person).Name;
+                    }
+                }
                 dt.Rows.Add(row);
             }
 
-            DependencyPropertyDescriptor dpd = DependencyPropertyDescriptor.FromProperty(ItemsControl.ItemsSourceProperty, typeof(DataGrid));
-
-            dg.ItemsSource = dt.AsDataView();
-
-            dt.TableNewRow += Dt_TableNewRow;
-            dt.ColumnChanging += Dt_ColumnChanging;
-            dt.RowChanged += Dt_RowChanged;
-            dt.RowDeleting += Dt_RowDeleting;
-
-            dg.CurrentCellChanged += Dg_CurrentCellChanged;
-
-            dpd.AddValueChanged(dg, dg_ItemsSourceChanged);
             settingUp = false;
+        }
+
+        private void Dg_BeginningEdit(object sender, DataGridBeginningEditEventArgs e)
+        {
+            if (e.Column.Header.Equals("ID"))
+            {
+                MessageBox.Show("请不要轻易修改ID，如其他相关编号未修改完全很可能造成跳出");
+                oldID = int.Parse((e.Column.GetCellContent(e.Row) as TextBlock).Text);
+            }
         }
 
         private void Dg_CurrentCellChanged(object sender, EventArgs e)
@@ -449,31 +682,225 @@ namespace WorldOfTheThreeKingdomsEditor
 
         private void Dt_RowDeleting(object sender, DataRowChangeEventArgs e)
         {
-            IItemList list = GetDataList(scen);
-            T p = (T)list.GetGameObject((int)e.Row["id"]);
-            list.Remove(p);
+            //if (!dg.Name.Equals("dgDiplomaticRelation"))
+            //{
+                IItemList list = GetDataList(scen);
+                T p = (T)list.GetGameObject((int)e.Row["id"]);
+                list.Remove(p);
+            //}
+            //else if (dg.Name.Equals("dgDiplomaticRelation"))
+            //{
+            //    foreach (KeyValuePair<int, GameObjects.FactionDetail.DiplomaticRelation> a in scen.DiplomaticRelations.DiplomaticRelations)
+            //    {
+            //        if (a.Value.RelationFaction1ID == (int)e.Row["势力1ID"] && a.Value.RelationFaction2ID == (int)e.Row["势力2ID"])
+            //        {
+            //            scen.DiplomaticRelations.DiplomaticRelations.Remove(a.Key);
+            //            break;
+            //        }
+            //    }
+            //}
         }
 
         private int oldID = -1;
-        private void Dt_ColumnChanging(object sender, DataColumnChangeEventArgs e)
-        {
-            oldID = (int)e.Row["id"];
-        }
 
         private void Dt_RowChanged(object sender, DataRowChangeEventArgs e)
         {
             try
             {
-                T p = (T)(GetDataList(scen).GetGameObject((int)e.Row["id"]));
-                if (p == null)
+                if (!settingUp && !MainWindow.pasting)
                 {
-                    p = (T)(GetDataList(scen).GetGameObject(oldID));
-                    GetDataList(scen).Remove(p);
-                    p.ID = (int)e.Row["id"];
-                    GetDataList(scen).Add(p);
+                    if (oldID == -1)
+                    {
+                        oldID = (int)e.Row["id"];
+                    }
+                    T p = (T)(GetDataList(scen).GetGameObject(oldID));
+                    if (p != null && GetDataList(scen) is GameObjectDictionaryItemList)
+                    {
+                        GetDataList(scen).Remove(p);
+                    }
+                    p.ID = (int)e.Row["ID"];
+                    if (GetDataList(scen) is GameObjectDictionaryItemList)
+                    {
+                        GetDataList(scen).Add(p);
+                    }
+                    oldID = -1;
+                    //T p = (T)(GetDataList(scen).GetGameObject((int)e.Row["id"]));
+                    //if (p == null)
+                    //{
+                    //    p = (T)(GetDataList(scen).GetGameObject(oldID));
+                    //    GetDataList(scen).Remove(p);
+                    //    p.ID = (int)e.Row["id"];
+                    //    GetDataList(scen).Add(p);
+                    //}
+                    FieldInfo[] fields = getFieldInfos();
+                    PropertyInfo[] properties = getPropertyInfos();
+
+                    foreach (FieldInfo i in fields)
+                    {
+                        string iName = getColumnName(i.Name);
+
+                        if (i.FieldType.IsEnum)
+                        {
+                            i.SetValue(p, (Int32)Enum.ToObject(i.FieldType, e.Row[iName]));
+                        }
+                        else if (i.FieldType == typeof(Microsoft.Xna.Framework.Point) || i.FieldType == typeof(Microsoft.Xna.Framework.Point?))
+                        {
+                            Microsoft.Xna.Framework.Point? list2;
+                            list2 = GameGlobal.StaticMethods.LoadFromString(e.Row[iName].ToString());
+                            i.SetValue(p, list2);
+                        }
+                        else if (i.FieldType == typeof(InfluenceKind))
+                        {
+                            i.SetValue(p, scen.GameCommonData.AllInfluenceKinds.GetInfluenceKind((int)e.Row[iName]));
+                        }
+                        else if (i.FieldType == typeof(ConditionKind))
+                        {
+                            i.SetValue(p, scen.GameCommonData.AllConditionKinds.GetConditionKind((int)e.Row[iName]));
+                        }
+                        else if (i.FieldType == typeof(TitleKind))
+                        {
+                            i.SetValue(p, scen.GameCommonData.AllTitleKinds.GetTitleKind((int)e.Row[iName]));
+                        }
+                        else if (i.FieldType == typeof(zainanlei))
+                        {
+                            i.SetValue(p, GameGlobal.StaticMethods.LoadzainanfromString(e.Row[iName].ToString()));
+                        }
+                        else if (i.FieldType == typeof(Dictionary<int, int>))
+                        {
+                            Dictionary<int, int> list2 = new Dictionary<int, int>();
+                            GameGlobal.StaticMethods.LoadFromString(list2, e.Row[iName].ToString());
+                            i.SetValue(p, list2);
+                        }
+                        else if (i.FieldType == typeof(List<KeyValuePair<int, int>>))
+                        {
+                            List<KeyValuePair<int, int>> list = new List<KeyValuePair<int, int>>();
+                            GameGlobal.StaticMethods.LoadFromString(list, e.Row[iName].ToString());
+                            i.SetValue(p, list);
+                        }
+                        else if (i.FieldType == typeof(GameObjects.ArchitectureDetail.EventEffect.EventEffectKind))
+                        {
+                            i.SetValue(p, scen.GameCommonData.AllEventEffectKinds.GetEventEffectKind((int)e.Row[iName]));
+                        }
+                        else if (i.FieldType == typeof(GameObjects.TroopDetail.EventEffect.EventEffectKind))
+                        {
+                            i.SetValue(p, scen.GameCommonData.AllTroopEventEffectKinds.GetEventEffectKind((int)e.Row[iName]));
+                        }
+                        else if (i.FieldType == typeof(List<int>))
+                        {
+                            i.SetValue(p, e.Row[iName].ToString().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).Select((x) => int.Parse(x)).ToList());
+                        }
+                        else if (i.FieldType == typeof(List<Microsoft.Xna.Framework.Point>))
+                        {
+                            List<Microsoft.Xna.Framework.Point> list = new List<Microsoft.Xna.Framework.Point>();
+                            GameGlobal.StaticMethods.LoadFromString(list, e.Row[iName].ToString());
+                            i.SetValue(p, list);
+                        }
+                        else if (i.FieldType == typeof(int[]))
+                        {
+                            GameGlobal.StaticMethods.LoadFromString(out int[] value, e.Row[iName].ToString());
+                            i.SetValue(p, value);
+                        }
+                        else
+                        {
+                            if (e.Row[iName] != DBNull.Value)
+                            {
+                                i.SetValue(p, e.Row[iName]);
+                            }
+                        }
+                    }
+                    foreach (PropertyInfo i in properties)
+                    {
+                        string iName = getColumnName(i.Name);
+
+                        if (i.PropertyType.IsEnum)
+                        {
+                            i.SetValue(p, (Int32)Enum.ToObject(i.PropertyType, e.Row[iName]));
+                        }
+                        else if (i.PropertyType == typeof(Microsoft.Xna.Framework.Point) || i.PropertyType == typeof(Microsoft.Xna.Framework.Point?))
+                        {
+                            Microsoft.Xna.Framework.Point? list2;
+                            list2 = GameGlobal.StaticMethods.LoadFromString(e.Row[iName].ToString());
+                            i.SetValue(p, list2);
+                        }
+                        else if (i.PropertyType == typeof(InfluenceKind))
+                        {
+                            i.SetValue(p, scen.GameCommonData.AllInfluenceKinds.GetInfluenceKind((int)e.Row[iName]));
+                        }
+                        else if (i.PropertyType == typeof(ConditionKind))
+                        {
+                            i.SetValue(p, scen.GameCommonData.AllConditionKinds.GetConditionKind((int)e.Row[iName]));
+                        }
+                        else if (i.PropertyType == typeof(TitleKind))
+                        {
+                            i.SetValue(p, scen.GameCommonData.AllTitleKinds.GetTitleKind((int)e.Row[iName]));
+                        }
+                        else if (i.PropertyType == typeof(List<KeyValuePair<int, int>>))
+                        {
+                            List<KeyValuePair<int, int>> list = new List<KeyValuePair<int, int>>();
+                            GameGlobal.StaticMethods.LoadFromString(list, e.Row[iName].ToString());
+                            i.SetValue(p, list);
+                        }
+                        else if (i.PropertyType == typeof(GameObjects.ArchitectureDetail.EventEffect.EventEffectKind))
+                        {
+                            i.SetValue(p, scen.GameCommonData.AllEventEffectKinds.GetEventEffectKind((int)e.Row[iName]));
+                        }
+                        else if (i.PropertyType == typeof(GameObjects.TroopDetail.EventEffect.EventEffectKind))
+                        {
+                            i.SetValue(p, scen.GameCommonData.AllTroopEventEffectKinds.GetEventEffectKind((int)e.Row[iName]));
+                        }
+                        else if (i.PropertyType == typeof(zainanlei))
+                        {
+                            i.SetValue(p, GameGlobal.StaticMethods.LoadzainanfromString(e.Row[iName].ToString()));
+                        }
+                        else if (i.PropertyType == typeof(Dictionary<int, int>))
+                        {
+                            Dictionary<int, int> list2 = new Dictionary<int, int>();
+                            GameGlobal.StaticMethods.LoadFromString(list2, e.Row[iName].ToString());
+                            i.SetValue(p, list2);
+                        }
+                        else if (i.PropertyType == typeof(List<int>))
+                        {
+                            i.SetValue(p, e.Row[iName].ToString().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).Select((x) => int.Parse(x)).ToList());
+                        }
+                        else if (i.PropertyType == typeof(List<Microsoft.Xna.Framework.Point>))
+                        {
+                            List<Microsoft.Xna.Framework.Point> list2 = new List<Microsoft.Xna.Framework.Point>();
+                            GameGlobal.StaticMethods.LoadFromString(list2, e.Row[iName].ToString());
+                            i.SetValue(p, list2);
+                        }
+                        else if (i.PropertyType == typeof(int[]))
+                        {
+                            GameGlobal.StaticMethods.LoadFromString(out int[] value, e.Row[iName].ToString());
+                            i.SetValue(p, value);
+                        }
+                        else
+                        {
+                            if (e.Row[iName] != DBNull.Value)
+                            {
+                                i.SetValue(p, e.Row[iName]);
+                            }
+                        }
+                    }
+                    //initdt();
                 }
-                oldID = -1;
- 
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("資料輸入錯誤。" + ex.Message);
+            }
+        }
+
+        private void Dt_TableNewRow(object sender, DataTableNewRowEventArgs e)
+        {
+            if(!settingUp && !MainWindow.pasting)
+            {
+                T p = Activator.CreateInstance<T>();
+
+                IItemList list = GetDataList(scen);
+                int id = list.GetFreeGameObjectID();
+                e.Row["id"] = id;
+                p.ID = id;
+                list.Add(p);
                 FieldInfo[] fields = getFieldInfos();
                 PropertyInfo[] properties = getPropertyInfos();
 
@@ -483,11 +910,17 @@ namespace WorldOfTheThreeKingdomsEditor
 
                     if (i.FieldType.IsEnum)
                     {
-                        i.SetValue(p, (Int32) Enum.ToObject(i.FieldType, e.Row[iName]));
+                        i.SetValue(p, (Int32)Enum.ToObject(i.FieldType, e.Row[iName]));
+                    }
+                    else if (i.FieldType == typeof(Microsoft.Xna.Framework.Point) || i.FieldType == typeof(Microsoft.Xna.Framework.Point?))
+                    {
+                        Microsoft.Xna.Framework.Point? list2;
+                        list2 = GameGlobal.StaticMethods.LoadFromString(e.Row[iName].ToString());
+                        i.SetValue(p, list2);
                     }
                     else if (i.FieldType == typeof(InfluenceKind))
                     {
-                        i.SetValue(p, scen.GameCommonData.AllInfluenceKinds.GetInfluenceKind((int) e.Row[iName]));
+                        i.SetValue(p, scen.GameCommonData.AllInfluenceKinds.GetInfluenceKind((int)e.Row[iName]));
                     }
                     else if (i.FieldType == typeof(ConditionKind))
                     {
@@ -496,6 +929,22 @@ namespace WorldOfTheThreeKingdomsEditor
                     else if (i.FieldType == typeof(TitleKind))
                     {
                         i.SetValue(p, scen.GameCommonData.AllTitleKinds.GetTitleKind((int)e.Row[iName]));
+                    }
+                    else if (i.FieldType == typeof(zainanlei))
+                    {
+                        i.SetValue(p, GameGlobal.StaticMethods.LoadzainanfromString(e.Row[iName].ToString()));
+                    }
+                    else if (i.FieldType == typeof(Dictionary<int, int>))
+                    {
+                        Dictionary<int, int> list2 = new Dictionary<int, int>();
+                        GameGlobal.StaticMethods.LoadFromString(list2, e.Row[iName].ToString());
+                        i.SetValue(p, list2);
+                    }
+                    else if (i.FieldType == typeof(List<KeyValuePair<int, int>>))
+                    {
+                        List<KeyValuePair<int, int>> list2 = new List<KeyValuePair<int, int>>();
+                        GameGlobal.StaticMethods.LoadFromString(list2, e.Row[iName].ToString());
+                        i.SetValue(p, list2);
                     }
                     else if (i.FieldType == typeof(GameObjects.ArchitectureDetail.EventEffect.EventEffectKind))
                     {
@@ -508,6 +957,17 @@ namespace WorldOfTheThreeKingdomsEditor
                     else if (i.FieldType == typeof(List<int>))
                     {
                         i.SetValue(p, e.Row[iName].ToString().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).Select((x) => int.Parse(x)).ToList());
+                    }
+                    else if (i.FieldType == typeof(List<Microsoft.Xna.Framework.Point>))
+                    {
+                        List<Microsoft.Xna.Framework.Point> list2 = new List<Microsoft.Xna.Framework.Point>();
+                        GameGlobal.StaticMethods.LoadFromString(list2, e.Row[iName].ToString());
+                        i.SetValue(p, list2);
+                    }
+                    else if (i.FieldType == typeof(int[]))
+                    {
+                        GameGlobal.StaticMethods.LoadFromString(out int[] value, e.Row[iName].ToString());
+                        i.SetValue(p, value);
                     }
                     else
                     {
@@ -523,7 +983,13 @@ namespace WorldOfTheThreeKingdomsEditor
 
                     if (i.PropertyType.IsEnum)
                     {
-                        i.SetValue(p, (Int32) Enum.ToObject(i.PropertyType, e.Row[iName]));
+                        i.SetValue(p, (Int32)Enum.ToObject(i.PropertyType, e.Row[iName]));
+                    }
+                    else if (i.PropertyType == typeof(Microsoft.Xna.Framework.Point) || i.PropertyType == typeof(Microsoft.Xna.Framework.Point?))
+                    {
+                        Microsoft.Xna.Framework.Point? list2;
+                        list2 = GameGlobal.StaticMethods.LoadFromString(e.Row[iName].ToString());
+                        i.SetValue(p, list2);
                     }
                     else if (i.PropertyType == typeof(InfluenceKind))
                     {
@@ -537,6 +1003,22 @@ namespace WorldOfTheThreeKingdomsEditor
                     {
                         i.SetValue(p, scen.GameCommonData.AllTitleKinds.GetTitleKind((int)e.Row[iName]));
                     }
+                    else if (i.PropertyType == typeof(zainanlei))
+                    {
+                        i.SetValue(p, GameGlobal.StaticMethods.LoadzainanfromString(e.Row[iName].ToString()));
+                    }
+                    else if (i.PropertyType == typeof(Dictionary<int, int>))
+                    {
+                        Dictionary<int, int> list2 = new Dictionary<int, int>();
+                        GameGlobal.StaticMethods.LoadFromString(list2, e.Row[iName].ToString());
+                        i.SetValue(p, list2);
+                    }
+                    else if (i.PropertyType == typeof(List<KeyValuePair<int, int>>))
+                    {
+                        List<KeyValuePair<int, int>> list2 = new List<KeyValuePair<int, int>>();
+                        GameGlobal.StaticMethods.LoadFromString(list2, e.Row[iName].ToString());
+                        i.SetValue(p, list2);
+                    }
                     else if (i.PropertyType == typeof(GameObjects.ArchitectureDetail.EventEffect.EventEffectKind))
                     {
                         i.SetValue(p, scen.GameCommonData.AllEventEffectKinds.GetEventEffectKind((int)e.Row[iName]));
@@ -549,6 +1031,17 @@ namespace WorldOfTheThreeKingdomsEditor
                     {
                         i.SetValue(p, e.Row[iName].ToString().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).Select((x) => int.Parse(x)).ToList());
                     }
+                    else if (i.PropertyType == typeof(List<Microsoft.Xna.Framework.Point>))
+                    {
+                        List<Microsoft.Xna.Framework.Point> list2 = new List<Microsoft.Xna.Framework.Point>();
+                        GameGlobal.StaticMethods.LoadFromString(list2, e.Row[iName].ToString());
+                        i.SetValue(p, list2);
+                    }
+                    else if (i.PropertyType == typeof(int[]))
+                    {
+                        GameGlobal.StaticMethods.LoadFromString(out int[] value, e.Row[iName].ToString());
+                        i.SetValue(p, value);
+                    }
                     else
                     {
                         if (e.Row[iName] != DBNull.Value)
@@ -558,21 +1051,6 @@ namespace WorldOfTheThreeKingdomsEditor
                     }
                 }
             }
-            catch (Exception ex)
-            {
-                MessageBox.Show("資料輸入錯誤。" + ex.Message);
-            }
-        }
-
-        private void Dt_TableNewRow(object sender, DataTableNewRowEventArgs e)
-        {
-            T p = Activator.CreateInstance<T>();
-
-            IItemList list = GetDataList(scen);
-            int id = list.GetFreeGameObjectID();
-            e.Row["id"] = id;
-            p.ID = id;
-            list.Add(p);
         }
 
         private void dg_ItemsSourceChanged(object sender, EventArgs e)
@@ -590,11 +1068,15 @@ namespace WorldOfTheThreeKingdomsEditor
                     continue;
                 }
 
-                int id = (int) item["id"];
-                T p = (T) list.GetGameObject(id);
+                int id = (int)item["id"];
+                T p = (T)list.GetGameObject(id);
                 if (p == null)
                 {
                     p = Activator.CreateInstance<T>();
+                    if(list is GameObjectDictionaryItemList)
+                    {
+                        p.ID = id;
+                    }
                     list.Add(p);
                 }
                 FieldInfo[] fields = getFieldInfos();
@@ -606,7 +1088,13 @@ namespace WorldOfTheThreeKingdomsEditor
 
                     if (i.FieldType.IsEnum)
                     {
-                        i.SetValue(p, (Int32) Enum.ToObject(i.FieldType, item[iName]));
+                        i.SetValue(p, (Int32)Enum.ToObject(i.FieldType, item[iName]));
+                    }
+                    else if (i.FieldType == typeof(Microsoft.Xna.Framework.Point) || i.FieldType == typeof(Microsoft.Xna.Framework.Point?))
+                    {
+                        Microsoft.Xna.Framework.Point? list2;
+                        list2 = GameGlobal.StaticMethods.LoadFromString(item[iName].ToString());
+                        i.SetValue(p, list2);
                     }
                     else if (i.FieldType == typeof(InfluenceKind))
                     {
@@ -620,6 +1108,16 @@ namespace WorldOfTheThreeKingdomsEditor
                     {
                         i.SetValue(p, scen.GameCommonData.AllTitleKinds.GetTitleKind((int)item[iName]));
                     }
+                    else if (i.FieldType == typeof(zainanlei))
+                    {
+                        i.SetValue(p, GameGlobal.StaticMethods.LoadzainanfromString(item[iName].ToString()));
+                    }
+                    else if (i.FieldType == typeof(Dictionary<int, int>))
+                    {
+                        Dictionary<int, int> list2 = new Dictionary<int, int>();
+                        GameGlobal.StaticMethods.LoadFromString(list2, item[iName].ToString());
+                        i.SetValue(p, list2);
+                    }
                     else if (i.FieldType == typeof(GameObjects.ArchitectureDetail.EventEffect.EventEffectKind))
                     {
                         i.SetValue(p, scen.GameCommonData.AllEventEffectKinds.GetEventEffectKind((int)item[iName]));
@@ -631,6 +1129,23 @@ namespace WorldOfTheThreeKingdomsEditor
                     else if (i.FieldType == typeof(List<int>))
                     {
                         i.SetValue(p, item[iName].ToString().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).Select((x) => int.Parse(x)).ToList());
+                    }
+                    else if (i.FieldType == typeof(List<Microsoft.Xna.Framework.Point>))
+                    {
+                        List<Microsoft.Xna.Framework.Point> list2 = new List<Microsoft.Xna.Framework.Point>();
+                        GameGlobal.StaticMethods.LoadFromString(list2, item[iName].ToString());
+                        i.SetValue(p, list2);
+                    }
+                    else if (i.FieldType == typeof(List<KeyValuePair<int, int>>))
+                    {
+                        List<KeyValuePair<int, int>> list2 = new List<KeyValuePair<int, int>>();
+                        GameGlobal.StaticMethods.LoadFromString(list2, item[iName].ToString());
+                        i.SetValue(p, list2);
+                    }
+                    else if (i.FieldType == typeof(int[]))
+                    {
+                        GameGlobal.StaticMethods.LoadFromString(out int[] value, item[iName].ToString());
+                        i.SetValue(p, value);
                     }
                     else
                     {
@@ -646,7 +1161,13 @@ namespace WorldOfTheThreeKingdomsEditor
 
                     if (i.PropertyType.IsEnum)
                     {
-                        i.SetValue(p, (Int32) Enum.ToObject(i.PropertyType, item[iName]));
+                        i.SetValue(p, (Int32)Enum.ToObject(i.PropertyType, item[iName]));
+                    }
+                    else if (i.PropertyType == typeof(Microsoft.Xna.Framework.Point) || i.PropertyType == typeof(Microsoft.Xna.Framework.Point?))
+                    {
+                        Microsoft.Xna.Framework.Point? list2;
+                        list2 = GameGlobal.StaticMethods.LoadFromString(item[iName].ToString());
+                        i.SetValue(p, list2);
                     }
                     else if (i.PropertyType == typeof(InfluenceKind))
                     {
@@ -660,6 +1181,12 @@ namespace WorldOfTheThreeKingdomsEditor
                     {
                         i.SetValue(p, scen.GameCommonData.AllTitleKinds.GetTitleKind((int)item[iName]));
                     }
+                    else if (i.PropertyType == typeof(Dictionary<int, int>))
+                    {
+                        Dictionary<int, int> list2 = new Dictionary<int, int>();
+                        GameGlobal.StaticMethods.LoadFromString(list2, item[iName].ToString());
+                        i.SetValue(p, list2);
+                    }
                     else if (i.PropertyType == typeof(GameObjects.ArchitectureDetail.EventEffect.EventEffectKind))
                     {
                         i.SetValue(p, scen.GameCommonData.AllEventEffectKinds.GetEventEffectKind((int)item[iName]));
@@ -668,9 +1195,30 @@ namespace WorldOfTheThreeKingdomsEditor
                     {
                         i.SetValue(p, scen.GameCommonData.AllTroopEventEffectKinds.GetEventEffectKind((int)item[iName]));
                     }
+                    else if (i.PropertyType == typeof(zainanlei))
+                    {
+                        i.SetValue(p, GameGlobal.StaticMethods.LoadzainanfromString(item[iName].ToString()));
+                    }
                     else if (i.PropertyType == typeof(List<int>))
                     {
                         i.SetValue(p, item[iName].ToString().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).Select((x) => int.Parse(x)).ToList());
+                    }
+                    else if (i.PropertyType == typeof(List<Microsoft.Xna.Framework.Point>))
+                    {
+                        List<Microsoft.Xna.Framework.Point> list2 = new List<Microsoft.Xna.Framework.Point>();
+                        GameGlobal.StaticMethods.LoadFromString(list2, item[iName].ToString());
+                        i.SetValue(p, list2);
+                    }
+                    else if (i.PropertyType == typeof(List<KeyValuePair<int, int>>))
+                    {
+                        List<KeyValuePair<int, int>> list2 = new List<KeyValuePair<int, int>>();
+                        GameGlobal.StaticMethods.LoadFromString(list2, item[iName].ToString());
+                        i.SetValue(p, list2);
+                    }
+                    else if (i.PropertyType == typeof(int[]))
+                    {
+                        GameGlobal.StaticMethods.LoadFromString(out int[] value, item[iName].ToString());
+                        i.SetValue(p, value);
                     }
                     else
                     {
@@ -681,7 +1229,37 @@ namespace WorldOfTheThreeKingdomsEditor
                     }
                 }
             }
+            MainWindow.pasting = false;
         }
 
+        private string datagridname;
+        private MainWindow mainWindow;
+        public void creatWindow(bool edit, DataGrid dataGrid,MainWindow mainWindow)
+        {
+            if (!settingUp)
+            {
+                this.mainWindow = mainWindow;
+                if (dataGrid.Name.Equals("dgFaction"))
+                {
+                    NewFactionWindow newWindow = new NewFactionWindow(edit, dataGrid, scen);
+                    datagridname = dataGrid.Name;
+                    newWindow.Closed += NewWindow_Closed;
+                    newWindow.ShowDialog();
+                }
+            }
+        }
+
+        private void NewWindow_Closed(object sender, EventArgs e)
+        {
+            if (!settingUp)
+            {
+                bool hascen = true;
+                if(datagridname.Equals("dgFaction"))
+                {
+                    initdt();
+                    mainWindow.initTables(new string[] { "dgArchitecture", "dgDiplomaticRelation" });
+                }
+            }
+        }
     }
 }

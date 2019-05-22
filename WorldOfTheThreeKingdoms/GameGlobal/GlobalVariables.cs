@@ -190,8 +190,6 @@ namespace GameGlobal
         [DataMember]
         public int DialogShowTime = 10;
         [DataMember]
-        public bool AINoTeamTransfer = false;
-        [DataMember]
         public bool LandArmyCanGoDownWater = true;
         [DataMember]
         public bool EnableResposiveThreading = false;
@@ -227,8 +225,6 @@ namespace GameGlobal
         public bool StopToControlOnAttack = true;
         [DataMember]
         public int MaxMilitaryExperience = 3000;
-        [DataMember]
-        public float ArmyPopulationCap = 1.0f; //兵力上限 
         [DataMember]
         public int FactionMilitaryLimt = 9000;
         [DataMember]
@@ -279,6 +275,10 @@ namespace GameGlobal
         public bool AutoMultipleMarriage = false;
         [DataMember]
         public bool BornHistoricalChildren = false;
+        [DataMember]
+        public float StartCircleTime = 30f;
+        [DataMember]
+        public float ScenarioMapPerTime = 3f;
 
         public const string cryptKey = "A3g0c3%2";
 
@@ -749,15 +749,6 @@ namespace GameGlobal
                 }
                 try
                 {
-                    AINoTeamTransfer = bool.Parse(nextSibling.Attributes.GetNamedItem("AINoTeamTransfer").Value);
-                }
-                catch (Exception exception24)
-                {
-                    exception = exception24;
-                    throw new Exception("AINoTeamTransfer:\n" + exception.ToString());
-                }
-                try
-                {
                     EnableCheat = bool.Parse(nextSibling.Attributes.GetNamedItem("EnableCheat").Value);
                 }
                 catch (Exception exception24)
@@ -984,15 +975,6 @@ namespace GameGlobal
                 }
                 try
                 {
-                    ArmyPopulationCap = float.Parse(nextSibling.Attributes.GetNamedItem("ArmyPopulationCap").Value);
-                }
-                catch (Exception exception24)
-                {
-                    exception = exception24;
-                    throw new Exception("ArmyPopulationCap:\n" + exception.ToString());
-                }
-                try
-                {
                     PermitQuanXiang = bool.Parse(nextSibling.Attributes.GetNamedItem("PermitQuanXiang").Value);
                 }
                 catch (Exception exception24)
@@ -1118,8 +1100,23 @@ namespace GameGlobal
                     exception = exception24;
                     throw new Exception("hougongAlienOnly:\n" + exception.ToString());
                 }
-            }
+                try
+                {
+                    StartCircleTime = float.Parse(nextSibling.Attributes.GetNamedItem("StartCircleTime").Value);
+                }
+                catch (Exception exception24)
+                {
 
+                }
+                try
+                {
+                    ScenarioMapPerTime = float.Parse(nextSibling.Attributes.GetNamedItem("ScenarioMapPerTime").Value);
+                }
+                catch (Exception exception24)
+                {
+
+                }
+            }
             else
             {
                 document = new XmlDocument();
@@ -1236,7 +1233,6 @@ namespace GameGlobal
             element.SetAttribute("LiangdaoXitong", LiangdaoXitong.ToString());
             element.SetAttribute("WujiangYoukenengDuli", WujiangYoukenengDuli.ToString());
             element.SetAttribute("FastBattleSpeed", FastBattleSpeed.ToString());
-            element.SetAttribute("AINoTeamTransfer", AINoTeamTransfer.ToString());
             element.SetAttribute("EnableCheat", EnableCheat.ToString());
             element.SetAttribute("HardcoreMode", HardcoreMode.ToString());
             element.SetAttribute("LandArmyCanGoDownWater", LandArmyCanGoDownWater.ToString());
@@ -1262,7 +1258,6 @@ namespace GameGlobal
             element.SetAttribute("FullScreen", FullScreen.ToString());
             element.SetAttribute("FriendlyDiplomacyThreshold", FriendlyDiplomacyThreshold.ToString());
             element.SetAttribute("SurroundFactor", SurroundFactor.ToString());
-            element.SetAttribute("ArmyPopulationCap", ArmyPopulationCap.ToString());
             element.SetAttribute("PermitQuanXiang", PermitQuanXiang.ToString());
             element.SetAttribute("PermitManualAwardTitleAutoLearn", PermitManualAwardTitleAutoLearn.ToString());
             element.SetAttribute("zhaoxianOfficerMax", zhaoxianOfficerMax.ToString());
@@ -1278,6 +1273,8 @@ namespace GameGlobal
             element.SetAttribute("AutoMultipleMarriage", AutoMultipleMarriage.ToString());
             element.SetAttribute("BornHistoricalChildren", BornHistoricalChildren.ToString());
             element.SetAttribute("hougongAlienOnly", hougongAlienOnly.ToString());
+            element.SetAttribute("StartCircleTime", StartCircleTime.ToString());
+            element.SetAttribute("ScenarioMapPerTime", ScenarioMapPerTime.ToString());
 
             document.AppendChild(element);
         

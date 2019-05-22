@@ -63,15 +63,15 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\References\Win\MonoGame.Framework.dll</HintPath>
     </Reference>
-    <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>bin\Debug\Newtonsoft.Json.dll</HintPath>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\References\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="PresentationFramework.Aero" />
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Core" />
@@ -90,6 +90,13 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="DiplomaticRelationTab.cs" />
+    <Compile Include="SectionAIDetailTab.cs" />
+    <Compile Include="SectionlTab.cs" />
+    <Compile Include="TextMessageTab.cs" />
+    <Compile Include="TitleKindTab.cs" />
+    <Compile Include="PersonIDRelationsTab.cs" />
+    <Compile Include="UserControl1_labeltext.xaml.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -100,6 +107,9 @@
     </Compile>
     <Compile Include="ArchitectureKindTab.cs" />
     <Compile Include="BiographyTab.cs" />
+    <Compile Include="TerrainDetailTab.cs" />
+    <Compile Include="DictionaryintTab.cs" />
+    <Compile Include="RegionTab.cs" />
     <Compile Include="sce.xaml.cs">
       <DependentUpon>sce.xaml</DependentUpon>
     </Compile>
@@ -114,6 +124,7 @@
     <Compile Include="Sets.xaml.cs">
       <DependentUpon>Sets.xaml</DependentUpon>
     </Compile>
+    <Compile Include="StateTab.cs" />
     <Compile Include="TechniqueTab.cs" />
     <Compile Include="TroopEventEffectKindTab.cs" />
     <Compile Include="EventEffectKindTab.cs" />
@@ -158,6 +169,10 @@
     <Page Include="Sets.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UserControl1_labeltext.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
   </ItemGroup>
   <ItemGroup>

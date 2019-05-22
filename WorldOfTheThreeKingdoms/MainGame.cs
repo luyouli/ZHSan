@@ -88,6 +88,10 @@ namespace WorldOfTheThreeKingdoms
             //}
 
             Platform.Current.PreparePhone();
+
+            //獲取設置數據
+            Setting.Init(false);
+
             string str = "";
             Session.globalVariablesBasic = new GlobalVariables();
             Session.globalVariablesBasic.InitialGlobalVariables(str);
@@ -96,7 +100,7 @@ namespace WorldOfTheThreeKingdoms
             Session.parametersBasic.InitializeGameParameters(str);
 
             //獲取設置數據
-            Setting.Init();
+            Setting.Init(true);
 
             Session.Init();
 
@@ -111,7 +115,7 @@ namespace WorldOfTheThreeKingdoms
             if (Platform.PlatFormType == PlatFormType.Win)  //Platform.PlatFormType == PlatFormType.UWP
             {
                 DateTime buildDate = new FileInfo(Platform.Current.Location).LastWriteTime;
-                base.Window.Title = "中华三国志(v1.2.2) - build-" + buildDate.Year + "-" + buildDate.Month + "-" + buildDate.Day;
+                base.Window.Title = "中华三国志(v1.3) - build-" + buildDate.Year + "-" + buildDate.Month + "-" + buildDate.Day;
             }
 
             Platform.Current.SetMouseVisible(false);
@@ -354,7 +358,7 @@ namespace WorldOfTheThreeKingdoms
                                     //保存當前進度
                                     mainGameScreen.SaveGameAutoPosition();
 
-                                    loadingScreen = new LoadingScreen();
+                                    loadingScreen = new LoadingScreen("End", "");
                                     loadingScreen.LoadScreenEvent += (sender0, e0) =>
                                     {
                                         Platform.Sleep(1000);
@@ -412,7 +416,10 @@ namespace WorldOfTheThreeKingdoms
                 }
             }
 
-            var spriteMode = mainGameScreen == null ? SpriteSortMode.Deferred : SpriteSortMode.BackToFront;
+            //var spriteMode = mainGameScreen == null ? SpriteSortMode.Deferred : SpriteSortMode.BackToFront;
+
+            var spriteMode = mainGameScreen == null || loadingScreen != null ? SpriteSortMode.Deferred : SpriteSortMode.BackToFront;
+
 
             if (disScale) //Platform.PlatFormType == PlatForm.iOS && isRetina)
             {
@@ -466,15 +473,20 @@ namespace WorldOfTheThreeKingdoms
                     {
                         if (String.IsNullOrEmpty(err))
                         {
-                            try
-                            {
-                                mainGameScreen.Draw(gameTime);
-                            }
-                            catch (Exception ex)
-                            {
-                                err = "不好意思，游戏运行出错，点击将返回主菜单，请考虑读取自动存档。\r\n" + ex.Message;
-                                WebTools.TakeWarnMsg("mainGameScreen.Draw", "", ex);
-                            }
+#if DEBUG
+                            mainGameScreen.Draw(gameTime);
+#else
+                                try
+                                {
+                                    mainGameScreen.Draw(gameTime);
+                                }
+                                catch (Exception ex)
+                                {
+                                    err = "不好意思，游戏运行出错，点击将返回主菜单，请考虑读取自动存档。\r\n" + ex.Message;
+                                    WebTools.TakeWarnMsg("mainGameScreen.Draw", "", ex);
+                                }
+#endif
+
                         }
                         else
                         {
@@ -490,7 +502,7 @@ namespace WorldOfTheThreeKingdoms
                                 //保存當前進度
                                 mainGameScreen.SaveGameAutoPosition();
 
-                                loadingScreen = new LoadingScreen();
+                                loadingScreen = new LoadingScreen("End", "");
                                 loadingScreen.LoadScreenEvent += (sender0, e0) =>
                                 {
                                     Platform.Sleep(1000);

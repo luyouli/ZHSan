@@ -30,6 +30,9 @@ namespace GameObjects
     {
         //public GameFreeText.FreeText GameProgressCaution;
 
+        [DataMember]
+        public string MOD { get; set; }
+
         public static string SCENARIO_ERROR_TEXT_FILE
         {
             get
@@ -53,7 +56,7 @@ namespace GameObjects
 
         // 缓存地图上有几支部队在埋伏
         private int numberOfAmbushTroop = -1;
-
+        public static int savemaxcounts=49;
         // public Dictionary<Event, Architecture> YesArchiEventsToApply = new Dictionary<Event, Architecture>();
         //public Dictionary<Event, Architecture> NoArchiEventsToApply = new Dictionary<Event, Architecture>();
 
@@ -586,7 +589,7 @@ namespace GameObjects
         }
 
         [DataMember]
-        private CaptiveList captiveData = new CaptiveList();
+        public CaptiveList captiveData = new CaptiveList();
 
         public CaptiveList Captives
         {
@@ -3026,12 +3029,18 @@ namespace GameObjects
 
             foreach (KeyValuePair<int, int> i in FatherIds)
             {
-                (this.Persons.GetGameObject(i.Key) as Person).Father = this.Persons.GetGameObject(i.Value) as Person;
+                if (this.Persons.GetGameObject(i.Key) != null)
+                {
+                    (this.Persons.GetGameObject(i.Key) as Person).Father = this.Persons.GetGameObject(i.Value) as Person;
+                }
             }
 
             foreach (KeyValuePair<int, int> i in MotherIds)
             {
-                (this.Persons.GetGameObject(i.Key) as Person).Mother = this.Persons.GetGameObject(i.Value) as Person;
+                if (this.Persons.GetGameObject(i.Key) != null)
+                {
+                    (this.Persons.GetGameObject(i.Key) as Person).Mother = this.Persons.GetGameObject(i.Value) as Person;
+                }
             }
 
             foreach (KeyValuePair<int, int> i in SpouseIds)
@@ -3100,11 +3109,11 @@ namespace GameObjects
                 foreach (int j in i.Value)
                 {
                     Person q = this.Persons.GetGameObject(j) as Person;
-                    if (q != null)
+                    if (p != null && q != null)
                     {
                         p.AddClose(q);
                     }
-                    else
+                    else if (p != null)
                     {
                         errorMsg.Add("人物ID" + p.ID + "：亲爱武将ID" + j + "不存在");
                     }
@@ -3117,11 +3126,11 @@ namespace GameObjects
                 foreach (int j in i.Value)
                 {
                     Person q = this.Persons.GetGameObject(j) as Person;
-                    if (q != null)
+                    if (p != null && q != null)
                     {
                         p.AddHated(q);
                     }
-                    else
+                    else if (p != null)
                     {
                         errorMsg.Add("人物ID" + p.ID + "：厌恶武将ID" + j + "不存在");
                     }
@@ -3134,20 +3143,27 @@ namespace GameObjects
                 foreach (int j in i.Value)
                 {
                     Person q = this.Persons.GetGameObject(j) as Person;
-                    if (q != null)
+                    if (p != null && q != null)
                     {
                         p.suoshurenwuList.Add(q);
                     }
-                    else
+                    else if (p != null)
                     {
                         errorMsg.Add("人物ID" + p.ID + "：所属人物表ID" + j + "不存在");
+                    } 
+                    else
+                    {
+                        errorMsg.Add("人物ID" + p + "：所属人物表ID" + j + "不存在");
                     }
                 }
             }
 
             foreach (KeyValuePair<int, int> i in MarriageGranterId)
             {
-                (this.Persons.GetGameObject(i.Key) as Person).marriageGranter = this.Persons.GetGameObject(i.Value) as Person;
+                if ((this.Persons.GetGameObject(i.Key) as Person) != null)
+                {
+                    (this.Persons.GetGameObject(i.Key) as Person).marriageGranter = this.Persons.GetGameObject(i.Value) as Person;
+                }
             }
 
             foreach (Person p in this.Persons)
@@ -3220,7 +3236,7 @@ namespace GameObjects
                 }
             }
 
-            if (this.captiveData != null)
+            if (this.captiveData != null && !editing)
             {
                 foreach (Captive captive in this.captiveData)
                 {
@@ -3728,46 +3744,44 @@ namespace GameObjects
                 //e.LoadScenBiographyFromString(reader["ScenBiography"].ToString());
                 this.AllEvents.AddEventWithEvent(e, false);
             }
-           
-            foreach (Person p in this.Persons)
+            if(!editing)//这里不加条件的话，用剧本编辑器读取有错剧本时，可能出现游戏主程序能读剧本而编辑器打不开剧本的情况
             {
-                if (p.Status == PersonStatus.Normal || p.Status == PersonStatus.Moving)
+                foreach (Person p in this.Persons)
                 {
-                    if (p.LocationArchitecture != null && p.LocationArchitecture.BelongedFaction == null)
+                    if (p.Status == PersonStatus.Normal || p.Status == PersonStatus.Moving)
                     {
-                        errorMsg.Add("武将ID" + p.ID + "在一座没有势力的城池仕官");
-                        if (p.Status == PersonStatus.Normal)
+                        if (p.LocationArchitecture != null && p.LocationArchitecture.BelongedFaction == null)
                         {
-                            p.Status = PersonStatus.NoFaction;
+                            errorMsg.Add("武将ID" + p.ID + "在一座没有势力的城池仕官");
+                            if (p.Status == PersonStatus.Normal)
+                            {
+                                p.Status = PersonStatus.NoFaction;
+                            }
+                            else
+                            {
+                                p.Status = PersonStatus.NoFactionMoving;
+                            }
                         }
-                        else
+                    }
+                    if (p.Status == PersonStatus.Moving || p.Status == PersonStatus.NoFactionMoving)
+                    {
+                        if (p.ArrivingDays <= 0)
                         {
-                            p.Status = PersonStatus.NoFactionMoving;
+                            errorMsg.Add("武将ID" + p.ID + "正移动，但没有移动天数");
+                            p.ArrivingDays = 1;
+                        }
+                    }
+                    if (p.Available && p.Alive && p.LocationArchitecture == null && p.LocationTroop == null && (p.ID < 7000 || p.ID >= 8000))
+                    {
+                        if (p.Status != PersonStatus.Princess)
+                        {
+                            errorMsg.Add("武将ID" + p.ID + "已登场，但没有所属建筑");
+                            p.Available = false;
+                            p.Alive = false;
+                            p.Status = PersonStatus.None;
                         }
                     }
                 }
-                if (p.Status == PersonStatus.Moving || p.Status == PersonStatus.NoFactionMoving)
-                {
-                    if (p.ArrivingDays <= 0)
-                    {
-                        errorMsg.Add("武将ID" + p.ID + "正移动，但没有移动天数");
-                        p.ArrivingDays = 1;
-                    }
-                }
-                if (p.Available && p.Alive && p.LocationArchitecture == null && p.LocationTroop == null && (p.ID < 7000 || p.ID >= 8000))
-                {
-                    if (p.Status != PersonStatus.Princess)
-                    {
-                        errorMsg.Add("武将ID" + p.ID + "已登场，但没有所属建筑");
-                        p.Available = false;
-                        p.Alive = false;
-                        p.Status = PersonStatus.None;
-                    }
-                }
-            }
-
-            if (!editing)
-            {
                 ClearTempDic();
             }
 
@@ -3802,6 +3816,7 @@ namespace GameObjects
             CloseIds.Clear();
             HatedIds.Clear();
             MarriageGranterId.Clear();
+            PersonRelationIds.Clear();
         }
         
         private void alterTransportShipAdaptibility()
@@ -4574,17 +4589,45 @@ namespace GameObjects
             {
                 this.GameTime = 0;
             }
-
-            this.GameTime += (int)DateTime.Now.Subtract(sessionStartTime).TotalSeconds;
+            if(!editing)
+            {
+                this.GameTime += (int)DateTime.Now.Subtract(sessionStartTime).TotalSeconds;
+            }
             sessionStartTime = DateTime.Now;
 
             List<string> errors = new List<string>();
 
             ClearPersonStatusCache();
             ClearPersonWorkCache();
-            
-            //try
-            //{
+
+            this.Architectures.GameObjects = this.Architectures.GameObjects.OrderBy(x => x.ID).ToList();
+            this.AllBiographies.Biographys = this.AllBiographies.Biographys.OrderBy(x => x.Value.ID).ToDictionary(x => x.Key, y => y.Value);
+            this.Captives.GameObjects = this.Captives.GameObjects.OrderBy(x => x.ID).ToList();
+            this.AllEvents.GameObjects = this.AllEvents.GameObjects.OrderBy(x => x.ID).ToList();
+            this.Facilities.GameObjects = this.Facilities.GameObjects.OrderBy(x => x.ID).ToList();
+            this.Factions.GameObjects = this.Factions.GameObjects.OrderBy(x => x.ID).ToList();
+            this.Informations.GameObjects = this.Informations.GameObjects.OrderBy(x => x.ID).ToList();
+            this.Legions.GameObjects = this.Legions.GameObjects.OrderBy(x => x.ID).ToList();
+            this.Militaries.GameObjects = this.Militaries.GameObjects.OrderBy(x => x.ID).ToList();
+            this.Persons.GameObjects = this.Persons.GameObjects.OrderBy(x => x.ID).ToList();
+            this.Routeways.GameObjects = this.Routeways.GameObjects.OrderBy(x => x.ID).ToList();
+            this.Sections.GameObjects = this.Sections.GameObjects.OrderBy(x => x.ID).ToList();
+            this.Treasures.GameObjects = this.Treasures.GameObjects.OrderBy(x => x.ID).ToList();
+            this.Troops.GameObjects = this.Troops.GameObjects.OrderBy(x => x.ID).ToList();
+            this.TroopEvents.GameObjects = this.TroopEvents.GameObjects.OrderBy(x => x.ID).ToList();
+            this.DiplomaticRelations.DiplomaticRelations = this.DiplomaticRelations.DiplomaticRelations.OrderBy(x => x.Value.RelationFaction1ID).ToDictionary(x => x.Key, y => y.Value);
+            if(editing)
+            {
+                this.FatherIds = this.FatherIds.OrderBy(x => x.Key).ToDictionary(x => x.Key, y => y.Value);
+                this.MotherIds = this.MotherIds.OrderBy(x => x.Key).ToDictionary(x => x.Key, y => y.Value);
+                this.SpouseIds = this.SpouseIds.OrderBy(x => x.Key).ToDictionary(x => x.Key, y => y.Value);
+                this.BrotherIds = this.BrotherIds.OrderBy(x => x.Key).ToDictionary(x => x.Key, y => y.Value);
+                this.SuoshuIds = this.SuoshuIds.OrderBy(x => x.Key).ToDictionary(x => x.Key, y => y.Value);
+                this.CloseIds = this.CloseIds.OrderBy(x => x.Key).ToDictionary(x => x.Key, y => y.Value);
+                this.HatedIds = this.HatedIds.OrderBy(x => x.Key).ToDictionary(x => x.Key, y => y.Value);
+                this.PersonRelationIds = this.PersonRelationIds.OrderBy(x => x.PersonID1).ToList();
+            }
+
             if (!disposeMemory)
             {
                 this.DisposeLotsOfMemory();
@@ -4910,25 +4953,22 @@ namespace GameObjects
                     person.preferredTroopPersonsString = person.preferredTroopPersons.SaveToString();
 
                     person.TrainPolicyIDString = person.TrainPolicy == null ? -1 : person.TrainPolicy.ID;
+
+                    foreach (KeyValuePair<Person, int> pi in person.GetRelations())
+                    {
+                        var personIDRelation = new PersonIDRelation()
+                        {
+                            PersonID1 = person.ID,
+                            PersonID2 = pi.Key.ID,
+                            Relation = pi.Value
+                        };
+                        PersonRelationIds.Add(personIDRelation);
+                    }
                 }
             }
-
-            captiveData = this.Captives;
-
-            PersonRelationIds.Clear();
-
-            foreach (Person p in this.Persons)
+            if(!editing)
             {
-                foreach (KeyValuePair<Person, int> pi in p.GetRelations())
-                {
-                    var personIDRelation = new PersonIDRelation()
-                    {
-                        PersonID1 = p.ID,
-                        PersonID2 = pi.Key.ID,
-                        Relation = pi.Value
-                    };
-                    PersonRelationIds.Add(personIDRelation);
-                }
+                captiveData = this.Captives;
             }
 
             if (saveMap)
@@ -4992,10 +5032,13 @@ namespace GameObjects
             }
 
             this.CurrentPlayerID = ((this.CurrentPlayer != null) ? this.CurrentPlayer.ID : -1).ToString();
-            this.PlayerList = this.PlayerFactions.GameObjects.Select(ob => ob.ID).NullToEmptyList();
+            if(!editing)
+            {
+                this.PlayerList = this.PlayerFactions.GameObjects.Select(ob => ob.ID).NullToEmptyList();
+                this.PlayerInfo = this.GetPlayerInfo();
+            }
             this.Factions.FactionQueue = this.Factions.SaveQueueToString();
 
-            this.PlayerInfo = this.GetPlayerInfo();
 
             //row["JumpPosition"] = StaticMethods.SaveToString(new Point?(ScenarioMap.JumpPosition));
 
@@ -5032,7 +5075,6 @@ namespace GameObjects
             }
 
             var saves = LoadScenarioSaves();
-
             string file = LoadedFileName;
             if (!fullPathProvided)
             {
@@ -5073,8 +5115,16 @@ namespace GameObjects
                         Time = time.ToSeasonDate(),
                         Title = scenarioClone.ScenarioTitle
                     };
-
-                    SaveScenarioSaves(saves);
+                    if(!editing)
+                    {
+                        SaveScenarioSaves(saves);
+                    }
+                    else 
+                    {
+                        string saveDir = @"Save\";
+                        string saveFile = saveDir + "Saves.json";
+                        SimpleSerializer.SerializeJsonFile(saves, saveFile);
+                    }
                 }
             }
 
@@ -5224,7 +5274,27 @@ namespace GameObjects
         public static void SaveGameCommonData(GameScenario scenario)
         {
             var commonData = scenario.GameCommonData.Clone();
-
+            commonData.AllTitles.Titles = commonData.AllTitles.Titles.OrderBy(x => x.Value.ID).ToDictionary(x => x.Key, y => y.Value);
+            commonData.AllArchitectureKinds.ArchitectureKinds = commonData.AllArchitectureKinds.ArchitectureKinds.OrderBy(x => x.Value.ID).ToDictionary(x => x.Key, y => y.Value);
+            commonData.AllBiographyAdjectives = commonData.AllBiographyAdjectives.OrderBy(x => x.ID).ToList();
+            commonData.AllCombatMethods.CombatMethods = commonData.AllCombatMethods.CombatMethods.OrderBy(x => x.Value.ID).ToDictionary(x => x.Key, y => y.Value);
+            commonData.AllConditionKinds.ConditionKinds = commonData.AllConditionKinds.ConditionKinds.OrderBy(x => x.Value.ID).ToDictionary(x => x.Key, y => y.Value);
+            commonData.AllConditions.Conditions = commonData.AllConditions.Conditions.OrderBy(x => x.Value.ID).ToDictionary(x => x.Key, y => y.Value);
+            commonData.AllEventEffectKinds.EventEffectKinds = commonData.AllEventEffectKinds.EventEffectKinds.OrderBy(x => x.Value.ID).ToDictionary(x => x.Key, y => y.Value);
+            commonData.AllEventEffects.EventEffects = commonData.AllEventEffects.EventEffects.OrderBy(x => x.Value.ID).ToDictionary(x => x.Key, y => y.Value);
+            commonData.AllFacilityKinds.FacilityKinds = commonData.AllFacilityKinds.FacilityKinds.OrderBy(x => x.Value.ID).ToDictionary(x => x.Key, y => y.Value);
+            commonData.AllInfluenceKinds.InfluenceKinds = commonData.AllInfluenceKinds.InfluenceKinds.OrderBy(x => x.Value.ID).ToDictionary(x => x.Key, y => y.Value);
+            commonData.AllInfluences.Influences = commonData.AllInfluences.Influences.OrderBy(x => x.Value.ID).ToDictionary(x => x.Key, y => y.Value);
+            commonData.AllMilitaryKinds.MilitaryKinds= commonData.AllMilitaryKinds.MilitaryKinds.OrderBy(x => x.Value.ID).ToDictionary(x => x.Key, y => y.Value);
+            commonData.AllSkills.Skills = commonData.AllSkills.Skills.OrderBy(x => x.Value.ID).ToDictionary(x => x.Key, y => y.Value);
+            commonData.AllStratagems.Stratagems = commonData.AllStratagems.Stratagems.OrderBy(x => x.Value.ID).ToDictionary(x => x.Key, y => y.Value);
+            commonData.AllStunts.Stunts = commonData.AllStunts.Stunts.OrderBy(x => x.Value.ID).ToDictionary(x => x.Key, y => y.Value);
+            commonData.AllTechniques.Techniques = commonData.AllTechniques.Techniques.OrderBy(x => x.Value.ID).ToDictionary(x => x.Key, y => y.Value);
+            commonData.AllTitleKinds.TitleKinds = commonData.AllTitleKinds.TitleKinds.OrderBy(x => x.Value.ID).ToDictionary(x => x.Key, y => y.Value);
+            commonData.AllTitles.Titles = commonData.AllTitles.Titles.OrderBy(x => x.Value.ID).ToDictionary(x => x.Key, y => y.Value);
+            commonData.AllTroopEventEffectKinds.EventEffectKinds = commonData.AllTroopEventEffectKinds.EventEffectKinds.OrderBy(x => x.Value.ID).ToDictionary(x => x.Key, y => y.Value);
+            commonData.AllTroopEventEffects.EventEffects = commonData.AllTroopEventEffects.EventEffects.OrderBy(x => x.Value.ID).ToDictionary(x => x.Key, y => y.Value);
+            commonData.AllTextMessages.textMessages= commonData.AllTextMessages.textMessages.OrderBy(x => x.Key.Key).ToDictionary(x => x.Key, y => y.Value);
             var errorMsg = new List<string>();
 
             var conditionKinds = new ConditionKindTable();
@@ -5385,11 +5455,22 @@ namespace GameObjects
             {
                 scesList = new List<Scenario>();
 
-                for (int i = 0; i <= 10; i++)
+                for (int i = 0; i <= savemaxcounts+1; i++)
                 {
                     var sce = new Scenario()
                     {
-                        ID = i.ToString()
+                        ID = i < 10 ? "0" + i.ToString() : i.ToString()
+                    };
+                    scesList.Add(sce);
+                }
+            }
+            else if(scesList.Count<=GameScenario.savemaxcounts)
+            {
+                for (int i = scesList.Count; i <= savemaxcounts ; i++)
+                {
+                    var sce = new Scenario()
+                    {
+                        ID = i < 10 ? "0" + i.ToString() : i.ToString()
                     };
                     scesList.Add(sce);
                 }
@@ -5599,9 +5680,12 @@ namespace GameObjects
         public void SetPlayerFactionList(GameObjectList factions)
         {
             this.PlayerFactions.Clear();
-            foreach (Faction faction in factions)
+            if (factions != null)
             {
-                this.PlayerFactions.Add(faction);
+                foreach (Faction faction in factions)
+                {
+                    this.PlayerFactions.Add(faction);
+                }
             }
         }
 

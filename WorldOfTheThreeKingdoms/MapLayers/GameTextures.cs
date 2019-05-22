@@ -167,6 +167,17 @@ namespace WorldOfTheThreeKingdoms.Resources
                 foreach (MilitaryKind kind2 in Session.Current.Scenario.GameCommonData.AllMilitaryKinds.MilitaryKinds.Values)
                 {
                     str = "Content/Textures/Resources/Troop/" + kind2.ID.ToString() + "/";
+
+                    var files = Platform.Current.GetMODFiles(str, false);
+
+                    //重複的兵模，載入原始圖
+                    if (files.Length == 1 && files[0].Contains("same"))
+                    {
+                        var same = files[0].Substring(files[0].LastIndexOf("same")).Replace("same", "").Replace(".txt", "");
+
+                        str = "Content/Textures/Resources/Troop/" + same + "/";
+                    }
+
                     string soundDir = @"Content\Sound\Troop\" + kind2.ID.ToString() + "/";
                     //if (Platform.Current.DirectoryExists(str))  // Directory.Exists(str))
                     //{
@@ -335,7 +346,7 @@ namespace WorldOfTheThreeKingdoms.Resources
 
             mediumCityImg.Clear();
             largeCityImg.Clear();
-            string[] filePaths = Platform.Current.GetFiles("Content/Textures/Resources/Architecture/").NullToEmptyList().Where(fi => fi.EndsWith("*.png")).NullToEmptyArray();
+            string[] filePaths = Platform.Current.GetFiles("Content/Textures/Resources/Architecture/").NullToEmptyList().Where(fi => fi.EndsWith(".png")).NullToEmptyArray();
             foreach (String s in filePaths)
             {
                 string fileName = s.Substring(s.LastIndexOf('/') + 1, s.LastIndexOf('.') - s.LastIndexOf('/') - 1);
