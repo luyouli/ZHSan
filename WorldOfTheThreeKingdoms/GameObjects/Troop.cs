@@ -2555,17 +2555,7 @@ namespace GameObjects
                 }
                 if (this.CanEnter() && this.Army.Kind.Movability > 1)
                 {
-                    if (Session.Current.Scenario.IsPlayer(this.BelongedFaction) && this.TargetArchitecture != null)
-                    {
-                        if (this.mingling == "入城" && this.Position == this.minglingweizhi)
-                        {
-                            this.Enter(this.TargetArchitecture);
-                        }
-                    }
-                    else
-                    {
-                        this.Enter();
-                    }
+                    this.Enter();
                     cannotFindRouteRounds = 0;
                     return path;
                 }
@@ -2778,6 +2768,11 @@ namespace GameObjects
                 return (this.AirOffence && this.OffenceArea.HasPoint(troop.Position));
             }
             return this.OffenceArea.HasPoint(troop.Position);
+        }
+
+        public bool CanStratagem(Troop troop)
+        {
+            return this.StratagemArea.HasPoint(troop.Position);
         }
 
         public bool CancelCombatMethodAvail()
@@ -3248,7 +3243,6 @@ namespace GameObjects
                         {
                             foreach (Person q in sending.persons)
                             {
-                                if (p.Hates(q)) continue;
                                 if (GameObject.Chance((p.Uncruelty * 5 + q.Glamour / 2) / 2))
                                 {
                                     p.AdjustRelation(q, 0.5f / Math.Max(1, sending.persons.Count), 2);
@@ -3275,7 +3269,6 @@ namespace GameObjects
                         foreach (Person q in sending.persons)
                         {
                             if (p == q) continue;
-                            if (p.Hates(q)) continue;
                             if (GameObject.Chance(p.Uncruelty * 5 + q.Glamour / 2))
                             {
                                 p.AdjustRelation(q, 1f / Math.Max(1, sending.persons.Count), 3);
@@ -3519,7 +3512,12 @@ namespace GameObjects
 
         public bool CombatMethodAvail()
         {
-            return (this.Status == TroopStatus.一般);
+            return (this.Status == TroopStatus.一般 && !SelectedAttack);
+        }
+
+        public bool StrategemAvail()
+        {
+            return (this.Status == TroopStatus.一般 && !SelectedAttack);
         }
 
         public bool CanMoveAnyway()
@@ -4060,12 +4058,11 @@ namespace GameObjects
                 if (Session.Current.Scenario.IsPlayer(this.BelongedFaction) && this.TargetTroop == null && this.TargetArchitecture == null
                     && this.Position.Equals(this.Destination)
                     && this.Status == TroopStatus.一般 && this.WillArchitecture == this.StartingArchitecture
-                    && !this.HasHostileTroopInView() && !this.HasHostileArchitectureInView()
-                    && this.mingling != "移动" && this.mingling != "待命")
+                    && !this.HasHostileTroopInView() && !this.HasHostileArchitectureInView())
                 {
-                    this.minglingweizhi = this.Destination = Session.Current.Scenario.GetClosestPoint(this.StartingArchitecture.ArchitectureArea, this.Position);
-                    this.mingling = "入城";
+                    this.Destination = Session.Current.Scenario.GetClosestPoint(this.StartingArchitecture.ArchitectureArea, this.Position);
                     this.TargetArchitecture = this.StartingArchitecture;
+                    this.mingling = "Enter";
                 }
                 {
                     Architecture a = Session.Current.Scenario.GetArchitectureByPositionNoCheck(this.Position);
@@ -4080,6 +4077,8 @@ namespace GameObjects
                 }
 
                 this.DrawSelected = false;
+
+                this.mingling = "";
             }
         }
 
@@ -8278,17 +8277,11 @@ namespace GameObjects
                 this.OperationDone = true;
             }*/
 
-            if (this.mingling == "入城" && this.Position == this.minglingweizhi && Session.Current.Scenario.GetTroopByPosition(this.Position) == this)
+            if (this.mingling == "Enter" &&
+                this.TargetArchitecture != null && this.TargetArchitecture.BelongedFaction == this.BelongedFaction && 
+                this.TargetArchitecture.GetTroopEnterableArea(this).Area.Contains(this.Position))
             {
-                if (this.TargetArchitecture != null)
-                {
-                    this.Enter(this.TargetArchitecture);
-                }
-                else
-                {
-                    this.Enter();
-                }
-
+                this.Enter(this.TargetArchitecture);
             }
            // sp.Stop();
            /* try
@@ -8317,7 +8310,7 @@ namespace GameObjects
 
         public bool MoveAvail()
         {
-            return (this.Status == TroopStatus.一般);
+            return (this.Status == TroopStatus.一般 && !SelectedMove && !SelectedAttack);
         }
 
         private void MoveCaptiveIntoArchitecture(Architecture des)
@@ -8768,7 +8761,7 @@ namespace GameObjects
 
         private void PlaySound(string soundFileLocation, bool looping)
         {
-            if (Session.GlobalVariables.PlayBattleSound)  // && File.Exists(soundFileLocation))
+            if (Setting.Current.GlobalVariables.PlayBattleSound)  // && File.Exists(soundFileLocation))
             {
                 this.SoundFileLocation = soundFileLocation;
                 this.PlaySound();
@@ -9389,6 +9382,24 @@ namespace GameObjects
             {
                 this.defence = (int)(this.defence * Session.Parameters.AITroopDefenceRate);
             }
+            int maxRelation = 0;
+            int minRelation = 0;
+            foreach (Person p in this.Persons)
+            {
+                if (p == this.Leader) continue;
+                int thisRelation = p.GetRelation(this.Leader) + this.Leader.GetRelation(p);
+                if (thisRelation > 0 && thisRelation > maxRelation)
+                {
+                    maxRelation = thisRelation;
+                }
+                if (thisRelation < 0 && thisRelation < minRelation)
+                {
+                    minRelation = thisRelation;
+                }
+            }
+            int rel = Math.Max(-5000, Math.Min(5000, maxRelation + minRelation * 4));
+            this.offence = (int)(this.offence * (rel / 10000.0f + 1));
+
             if (this.defence <= 0)
             {
                 this.defence = 1;
@@ -9509,6 +9520,25 @@ namespace GameObjects
             {
                 this.offence = (int)(this.offence * Session.Parameters.AITroopOffenceRate);
             }
+
+            int maxRelation = 0;
+            int minRelation = 0;
+            foreach (Person p in this.Persons)
+            {
+                if (p == this.Leader) continue;
+                int thisRelation = p.GetRelation(this.Leader) + this.Leader.GetRelation(p);
+                if (thisRelation > 0 && thisRelation > maxRelation)
+                {
+                    maxRelation = thisRelation;
+                }
+                if (thisRelation < 0 && thisRelation < minRelation)
+                {
+                    minRelation = thisRelation;
+                }
+            }
+            int rel = Math.Max(-5000, Math.Min(5000, maxRelation + minRelation * 4));
+            this.offence = (int)(this.offence * (rel / 10000.0f + 1));
+
             if (this.offence <= 0)
             {
                 this.offence = 1;
@@ -10936,7 +10966,7 @@ namespace GameObjects
 
         public bool TargetAvail()
         {
-            return true;
+            return !SelectedAttack;
             //return ((((this.AttackTargetKind == TroopAttackTargetKind.目标) || (this.AttackTargetKind == TroopAttackTargetKind.目标默认)) || (this.CastTargetKind == TroopCastTargetKind.特定)) || (this.CastTargetKind == TroopCastTargetKind.特定默认));
         }
 
@@ -11121,7 +11151,7 @@ namespace GameObjects
 
 
                     Architecture a = Session.Current.Scenario.GetArchitectureByPosition(position);
-                    if (a != null && (!Session.Current.Scenario.IsPlayer(this.BelongedFaction) || this.mingling == "入城" ||
+                    if (a != null && (!Session.Current.Scenario.IsPlayer(this.BelongedFaction) ||
                         (this.StartingArchitecture.BelongedSection.AIDetail.AutoRun && !this.ManualControl)) && this.TargetArchitecture == a)
                     {
                         bool canEnter = this.CanEnter();
@@ -11154,7 +11184,7 @@ namespace GameObjects
                             }
 
                             a = Session.Current.Scenario.GetArchitectureByPosition(nextPosition);
-                            if (a != null && (!Session.Current.Scenario.IsPlayer(this.BelongedFaction) || this.mingling == "入城" ||
+                            if (a != null && (!Session.Current.Scenario.IsPlayer(this.BelongedFaction) ||
                                 (this.StartingArchitecture.BelongedSection.AIDetail.AutoRun && !this.ManualControl)) && this.TargetArchitecture == a)
                             {
                                 Point old = this.position;
@@ -14230,6 +14260,9 @@ namespace GameObjects
             return result;
         }
         public bool DrawSelected = false;
+
+        public bool SelectedMove = false;
+        public bool SelectedAttack = false;
     }
 }
 

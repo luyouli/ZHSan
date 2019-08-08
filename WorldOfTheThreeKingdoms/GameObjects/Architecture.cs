@@ -7849,7 +7849,7 @@ namespace GameObjects
             GameArea area = new GameArea();
             foreach (Architecture architecture in Session.Current.Scenario.Architectures)
             {
-                if (!this.IsFriendly(architecture.BelongedFaction))
+                if (!this.IsFriendly(architecture.BelongedFaction) && architecture.BelongedFaction != null)
                 {
                     foreach (Point point in architecture.ArchitectureArea.Area)
                     {
@@ -14977,6 +14977,14 @@ namespace GameObjects
         public bool PrincessChangeLeader(bool byOccupy, Faction capturer, Person p)
         {
             bool result = false;
+            if (p.Spouse != null)
+            {
+                if (p.Spouse.Spouse == p)
+                {
+                    p.Spouse.Spouse = null;
+                }
+                p.Spouse = null;
+            }
             if (capturer.Leader.isLegalFeiZiExcludeAge(p) && capturer.hougongValid)
              {
                 if (byOccupy)
@@ -15398,6 +15406,20 @@ namespace GameObjects
                 }
             }
             return result;
+        }
+
+        public Person GetMaxFightingForcePerson()
+        {
+            int temp = 0;
+            Person person = new Person();
+            foreach (Person p in this.Persons)
+            {
+                if(p.FightingForce>temp)
+                {
+                    person = p;
+                }
+            }
+            return person;
         }
 
     }

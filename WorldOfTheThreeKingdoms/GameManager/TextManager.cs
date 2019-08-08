@@ -7,7 +7,9 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
+using FontStashSharp;
+using Microsoft.Xna.Framework.Graphics;
+using Tools;
 namespace GameManager
 {
     public struct FontPair
@@ -58,6 +60,144 @@ namespace GameManager
             //Session.Current.SpriteBatch.Draw(font.Texture, pos, null, color, 0f, Vector2.Zero, scale, Microsoft.Xna.Framework.Graphics.SpriteEffects.None, depth == null ? 0 : (float)depth);
         }
 
+        public static List<Bounds> DrawTextsReturnBounds(string text, FontPair pair, Microsoft.Xna.Framework.Vector2 pos, Microsoft.Xna.Framework.Color color, int space = 0, float scale = 1f, float? depth = null)
+        {
+            List<Bounds> bounds = new List<Bounds>();
+            Bounds bound;
+            if (font == null)
+            {
+                Init(pair.Name, pair.Size);
+            }
+
+            text = text.Replace("\r\n", "\n").Replace("\r", "\n");
+
+            var texs = text.Split('\n');
+
+            for (int i = 0; i < texs.Length; i++)
+            {
+                var te = texs[i];
+
+                bound = font.DrawStringReturnBounds(Session.Current.SpriteBatch, te, pos + new Vector2(0, i * pair.Size * scale), color, new Vector2(scale, scale), depth == null ? 0 : (float)depth);
+                if (scale != 1f)   //当字体的缩放倍数不为一时，相应的字体范围也要乘以缩放倍数，字体范围才准确
+                {
+                    bound.X2 = bound.X + bound.Width * scale;
+                    bound.Y2 = bound.Y + bound.Height * scale;
+                }
+                bounds.Add(bound);
+
+            }
+
+            return bounds;
+            //Session.Current.SpriteBatch.Draw(font.Texture, pos, null, color, 0f, Vector2.Zero, scale, Microsoft.Xna.Framework.Graphics.SpriteEffects.None, depth == null ? 0 : (float)depth);
+        }
+        public static List<Bounds> DrawTextsReturnBounds(SpriteBatch batch, string text, FontPair pair, Microsoft.Xna.Framework.Vector2 pos, Microsoft.Xna.Framework.Color color, int space = 0, float scale = 1f, float? depth = null)
+        {
+            List<Bounds> bounds = new List<Bounds>();
+            Bounds bound;
+            if (font == null)
+            {
+                Init(pair.Name, pair.Size);
+            }
+
+            text = text.Replace("\r\n", "\n").Replace("\r", "\n");
+
+            var texs = text.Split('\n');
+
+            for (int i = 0; i < texs.Length; i++)
+            {
+                var te = texs[i];
+
+                bound = font.DrawStringReturnBounds(batch, te, pos + new Vector2(0, i * pair.Size * scale), color, new Vector2(scale, scale), depth == null ? 0 : (float)depth);
+                if (scale != 1f)   //当字体的缩放倍数不为一时，相应的字体范围也要乘以缩放倍数，字体范围才准确
+                {
+                    bound.X2 = bound.X + bound.Width * scale;
+                    bound.Y2 = bound.Y + bound.Height * scale;
+                }
+                bounds.Add(bound);
+
+            }
+
+            return bounds;
+            //Session.Current.SpriteBatch.Draw(font.Texture, pos, null, color, 0f, Vector2.Zero, scale, Microsoft.Xna.Framework.Graphics.SpriteEffects.None, depth == null ? 0 : (float)depth);
+        }
+
+        public static List<Bounds> CalcTextsBounds(string text, FontPair pair, Microsoft.Xna.Framework.Vector2 pos, int space = 0, float scale = 1f, float? depth = null)
+        {
+            List<Bounds> bounds = new List<Bounds>();
+            Bounds bound;
+            if (font == null)
+            {
+                Init(pair.Name, pair.Size);
+            }
+
+            text = text.Replace("\r\n", "\n").Replace("\r", "\n");
+
+            var texs = text.Split('\n');
+
+            for (int i = 0; i < texs.Length; i++)
+            {
+                var te = texs[i];
+
+                bound = font.CalcStringBounds(te, pos + new Vector2(0, i * pair.Size * scale), new Vector2(scale, scale));
+                if (scale != 1f)   //当字体的缩放倍数不为一时，相应的字体范围也要乘以缩放倍数，字体范围才准确
+                {
+                    bound.X2 = bound.X + bound.Width * scale;
+                    bound.Y2 = bound.Y + bound.Height * scale;
+                }
+                bounds.Add(bound);
+
+            }
+
+            return bounds;
+            //Session.Current.SpriteBatch.Draw(font.Texture, pos, null, color, 0f, Vector2.Zero, scale, Microsoft.Xna.Framework.Graphics.SpriteEffects.None, depth == null ? 0 : (float)depth);
+        }
+
+        /// <summary>
+        /// 将文字处理成自动换行的形式
+        /// </summary>
+        /// <param name="text">要处理的文字</param>
+        /// <param name="pair">FontPair</param>
+        /// <param name="lineWidth">行宽度</param>
+        /// <param name="scale">缩放倍数</param>
+        /// <returns>返回经过自动换行处理过的文字</returns>
+        public static string HandleAutoWrap(string text, FontPair pair, float lineWidth, float scale)
+        {
+            Bounds bound;
+            string autoWrapText = null;//换行后的文字
+            if (font == null)
+            {
+                Init(pair.Name, pair.Size);
+            }
+
+            text = text.Replace("\r\n", "\n").Replace("\r", "\n");
+
+            var texs = text.Split('\n');
+
+            int currentIndex;//指向在一行文字内当前指向的处理到第几个字的索引
+            string currentLine;//当前行需判断的文字
+            for (int i = 0; i < texs.Length; i++)
+            {
+                currentLine = null;
+                var te = texs[i];
+                currentIndex = 0;
+                for (int j = 0; j < te.Length; j++)
+                {
+
+                    currentLine = te.Substring(currentIndex, j - currentIndex + 1);//取出当前索引位置前的所有文字用于判断这些文字是否超过行宽度
+                    bound = font.CalcStringBounds(currentLine.ToString(), new Vector2(0, i * pair.Size * scale), new Vector2(scale, scale));
+
+                    if (bound.Width * scale > lineWidth)//如果当前这些文字超过行宽的
+                    {
+                        autoWrapText += (currentLine.Substring(0, currentLine.Length - 1) + '\n');//换行，并将当前行所有文字存入修改后的自动换行变量中
+                        currentIndex = j;
+                        j--;//当前的字超过行宽度，需要倒回去一个字开始继续处理
+                    }
+                }
+
+                autoWrapText += (currentLine + '\n');//将没有超界的文字加入总文字内
+            }
+            return autoWrapText;
+        }
         /*
 
     //public static void Init(string name)

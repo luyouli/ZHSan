@@ -3,7 +3,9 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using SpriteFontPlus;
 using StbSharp;
-
+using Platforms;
+using Tools;
+using System.Linq;
 namespace FontStashSharp
 {
 	internal unsafe class FontSystem
@@ -66,7 +68,7 @@ namespace FontStashSharp
 			ClearState();
 		}
 
-		public Texture2D Texture { get; private set; }
+		public Texture2D Texture { get; set; }
 
 		public void AddWhiteRect(int w, int h)
 		{
@@ -229,7 +231,7 @@ namespace FontStashSharp
 			return x;
 		}
 
-		public float TextBounds(float x, float y, StringSegment str, ref Bounds bounds)
+        public float TextBounds(float x, float y, StringSegment str, ref Bounds bounds)
 		{
 			var q = new FontGlyphSquad();
 			FontGlyph glyph = null;
@@ -682,6 +684,7 @@ namespace FontStashSharp
         //Add Depth Parameter
 		private void Flush(SpriteBatch batch, float depth)
 		{
+            //Texture = null;
 			if (Texture == null) Texture = new Texture2D(batch.GraphicsDevice, _params_.Width, _params_.Height);
 
 			if (_dirtyRect[0] < _dirtyRect[2] && _dirtyRect[1] < _dirtyRect[3])
@@ -728,7 +731,7 @@ namespace FontStashSharp
 			}
 		}
 
-		private void AddVertex(Rectangle destRect, Rectangle srcRect, Color c)
+        private void AddVertex(Rectangle destRect, Rectangle srcRect, Color c)
 		{
 			_verts[_vertsNumber] = destRect;
 			_textureCoords[_vertsNumber] = srcRect;
